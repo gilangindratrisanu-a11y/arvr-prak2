@@ -1,41 +1,54 @@
-
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  >
 
   <title>AR Kelompok 5 - Minggu 2</title>
 
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
   <script>
-    // Deteksi iPhone/iPad
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" &&
-       navigator.maxTouchPoints > 1);
+    // Deteksi perangkat iPhone/iPad
+    const isIOS =
+      /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (
+        navigator.platform === "MacIntel" &&
+        navigator.maxTouchPoints > 1
+      );
 
+    // Pengaturan kamera berdasarkan perangkat
     if (isIOS) {
       document.documentElement.classList.add("ios-ar");
     } else {
       document.documentElement.classList.add("desktop-ar");
     }
 
-    // Prioritaskan kamera belakang di iPhone.
-    if (isIOS && navigator.mediaDevices &&
-        navigator.mediaDevices.getUserMedia) {
-
+    // Gunakan kamera belakang pada iPhone
+    if (
+      isIOS &&
+      navigator.mediaDevices &&
+      navigator.mediaDevices.getUserMedia
+    ) {
       const originalGetUserMedia =
-        navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+        navigator.mediaDevices.getUserMedia.bind(
+          navigator.mediaDevices
+        );
 
       navigator.mediaDevices.getUserMedia = function(constraints) {
         if (constraints && constraints.video) {
+
           const videoConstraints =
             typeof constraints.video === "object"
-              ? {...constraints.video}
+              ? { ...constraints.video }
               : {};
 
+          // Prioritaskan kamera belakang
           if (!videoConstraints.facingMode) {
             videoConstraints.facingMode = {
               ideal: "environment"
@@ -53,89 +66,56 @@
     }
   </script>
 
+  <!-- AR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
   <style>
     /* Pengaturan dasar */
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: black;
+      background: transparent;
     }
 
-    /* Laptop: pertahankan mirror */
+    /* Laptop tetap mirror */
     html.desktop-ar body {
       transform: scaleX(-1);
     }
 
-    /* iPhone: jangan mirror */
-    html.ios-ar,
+    /* iPhone tidak mirror */
     html.ios-ar body {
-      width: 100% !important;
-      height: 100% !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      overflow: hidden !important;
-      transform: none !important;
+      transform: none;
     }
 
-    /* Fullscreen khusus iPhone */
+    /* Tampilan scene iPhone */
     html.ios-ar a-scene {
-      position: fixed !important;
-      inset: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      transform: none !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
     }
 
-    /* Video kamera belakang iPhone */
+    /* Jangan paksa ukuran video atau canvas.
+       Biarkan AR.js menghitung ukuran rendering. */
+
+    /* Video kamera iPhone */
     html.ios-ar #arjs-video {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: auto !important;
-      bottom: auto !important;
-
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-
-      min-width: 100vw !important;
-      min-height: 100dvh !important;
-
-      max-width: none !important;
-      max-height: none !important;
-
-      margin: 0 !important;
-      padding: 0 !important;
-
-      object-fit: cover !important;
-      object-position: center center !important;
-
-      transform: none !important;
-      -webkit-transform: none !important;
+      object-fit: cover;
+      object-position: center;
+      transform: none;
     }
 
-    /* Canvas AR khusus iPhone */
+    /* Canvas AR tetap mengikuti AR.js */
     html.ios-ar .a-canvas {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-
-      margin: 0 !important;
-      padding: 0 !important;
-
-      transform: none !important;
+      transform: none;
     }
   </style>
 </head>
@@ -146,9 +126,10 @@
     embedded
     arjs="sourceType: webcam; debugUIEnabled: false;"
     renderer="colorManagement: true; antialias: true"
-    vr-mode-ui="enabled: false">
+    vr-mode-ui="enabled: false"
+  >
 
-    <!-- Pencahayaan -->
+    <!-- Pencahayaan ambient -->
     <a-light
       id="cahaya-ambient"
       type="ambient"
@@ -156,6 +137,7 @@
       intensity="0.6">
     </a-light>
 
+    <!-- Pencahayaan directional -->
     <a-light
       id="cahaya-directional"
       type="directional"
@@ -165,7 +147,10 @@
     </a-light>
 
     <!-- Marker Hiro -->
-    <a-marker id="marker-hiro" preset="hiro">
+    <a-marker
+      id="marker-hiro"
+      preset="hiro"
+    >
 
       <!-- Alas transparan -->
       <a-plane
@@ -174,11 +159,18 @@
         rotation="-90 0 0"
         width="2"
         height="2"
-        material="color: #e9e5fa; opacity: 0.7; transparent: true">
+        material="
+          color: #e9e5fa;
+          opacity: 0.7;
+          transparent: true
+        ">
       </a-plane>
 
       <!-- Kelompok objek -->
-      <a-entity id="kelompok-objek" position="0 0 0">
+      <a-entity
+        id="kelompok-objek"
+        position="0 0 0"
+      >
 
         <!-- Kubus biru -->
         <a-box
@@ -196,13 +188,18 @@
           position="0 0.3 0"
           radius="0.3"
           color="#D9531E"
-          material="metalness: 0.3; roughness: 0.4"
-          animation="property: position;
-                     dir: alternate;
-                     to: 0 0.5 0;
-                     dur: 1500;
-                     loop: true;
-                     easing: easeInOutSine">
+          material="
+            metalness: 0.3;
+            roughness: 0.4
+          "
+          animation="
+            property: position;
+            dir: alternate;
+            to: 0 0.5 0;
+            dur: 1500;
+            loop: true;
+            easing: easeInOutSine
+          ">
         </a-sphere>
 
         <!-- Silinder hijau -->
@@ -212,12 +209,16 @@
           radius="0.2"
           height="0.6"
           color="#0B7F73"
-          animation="property: rotation;
-                     to: 0 360 0;
-                     dur: 4000;
-                     loop: true;
-                     easing: linear">
+          animation="
+            property: rotation;
+            to: 0 360 0;
+            dur: 4000;
+            loop: true;
+            easing: linear
+          "
+        >
 
+          <!-- Penanda rotasi -->
           <a-box
             id="penanda-silinder"
             position="0 0.15 0.2"
@@ -229,14 +230,17 @@
 
         </a-cylinder>
 
-        <!-- Kotak bertekstur -->
+        <!-- Kotak tekstur -->
         <a-box
           id="kotak-bertekstur"
           position="0 0.15 0.7"
           width="0.5"
           height="0.3"
           depth="0.5"
-          material="src: url(assets/tekstur.jpg); repeat: 1 1">
+          material="
+            src: url(assets/tekstur.jpg);
+            repeat: 1 1
+          ">
         </a-box>
 
       </a-entity>
