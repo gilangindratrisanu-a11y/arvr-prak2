@@ -2,14 +2,16 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>AR Kelompok 5 - Minggu 2</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script>
-    // Minta kamera belakang di iPhone tanpa mengubah webcam laptop.
+    // Minta kamera belakang di iPhone/mobile tanpa mengubah webcam laptop.
     (function () {
-      var isIPhone = /iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (!isIPhone || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+        window.innerWidth <= 820;
+      if (!isMobile || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
       var originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
       navigator.mediaDevices.getUserMedia = function (constraints) {
         constraints = constraints || {};
@@ -23,39 +25,148 @@
   </script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   <script>
-    // Bedakan iPhone berdasarkan perangkat, bukan hanya lebar layar.
-    // Laptop tetap memakai mirror bawaan pada <body>.
+    // Tandai perangkat mobile / iPhone
     (function () {
-      var isIPhone = /iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (isIPhone) document.documentElement.classList.add('iphone-ar');
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+        window.innerWidth <= 820;
+      if (isMobile) {
+        document.documentElement.classList.add('iphone-ar');
+        document.documentElement.classList.add('mobile-ar');
+      }
+
+      window.addEventListener('arjs-video-loaded', function (e) {
+        if (isMobile && e.detail && e.detail.component) {
+          var video = e.detail.component;
+          video.style.width = '100vw';
+          video.style.height = '100dvh';
+          video.style.minWidth = '100vw';
+          video.style.minHeight = '100dvh';
+          video.style.marginLeft = '0px';
+          video.style.marginTop = '0px';
+          video.style.objectFit = 'cover';
+        }
+      });
+
+      // Juga intercept setInterval/requestAnimationFrame atau window resize dari AR.js jika ia mencoba mereset ukuran
+      window.addEventListener('resize', function () {
+        if (isMobile) {
+          var video = document.getElementById('arjs-video');
+          var canvas = document.querySelector('.a-canvas');
+          if (video) {
+            video.style.width = '100vw';
+            video.style.height = '100dvh';
+            video.style.minWidth = '100vw';
+            video.style.minHeight = '100dvh';
+            video.style.marginLeft = '0px';
+            video.style.marginTop = '0px';
+            video.style.objectFit = 'cover';
+          }
+          if (canvas) {
+            canvas.style.width = '100vw';
+            canvas.style.height = '100dvh';
+            canvas.style.marginLeft = '0px';
+            canvas.style.marginTop = '0px';
+          }
+        }
+      });
     }());
   </script>
   <style>
-    /* Hanya iPhone: kamera belakang normal (tidak mirror). */
-    html.iphone-ar,
-    html.iphone-ar body {
-      width: 100% !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-      margin: 0 !important;
-      overflow: hidden;
-      transform: none !important;
+    /* Khusus iPhone dan perangkat mobile: kamera belakang normal (tidak mirror) dan fullscreen */
+    @media screen and (max-width: 820px) {
+      html, body {
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        transform: none !important;
+      }
+
+      #arjs-video,
+      video,
+      .a-canvas,
+      canvas,
+      a-scene {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-width: 100vw !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        max-height: none !important;
+        border: none !important;
+      }
+
+      #arjs-video,
+      video {
+        object-fit: cover !important;
+        object-position: center center !important;
+        z-index: -2 !important;
+      }
+
+      .a-canvas,
+      canvas {
+        z-index: 1 !important;
+      }
     }
 
-    html.iphone-ar a-scene,
-    html.iphone-ar .a-canvas,
-    html.iphone-ar video {
-      position: fixed !important;
-      inset: 0 !important;
+    html.iphone-ar,
+    html.iphone-ar body,
+    html.mobile-ar,
+    html.mobile-ar body {
       width: 100vw !important;
       height: 100vh !important;
       height: 100dvh !important;
-      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      transform: none !important;
     }
 
-    html.iphone-ar video {
+    html.iphone-ar #arjs-video,
+    html.iphone-ar video,
+    html.iphone-ar .a-canvas,
+    html.iphone-ar canvas,
+    html.iphone-ar a-scene,
+    html.mobile-ar #arjs-video,
+    html.mobile-ar video,
+    html.mobile-ar .a-canvas,
+    html.mobile-ar canvas,
+    html.mobile-ar a-scene {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      min-width: 100vw !important;
+      min-height: 100vh !important;
+      min-height: 100dvh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      border: none !important;
+    }
+
+    html.iphone-ar video,
+    html.mobile-ar video {
       object-fit: cover !important;
       object-position: center center !important;
+      z-index: -2 !important;
     }
   </style>
 </head>
